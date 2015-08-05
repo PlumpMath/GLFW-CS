@@ -4,8 +4,20 @@ using System.Runtime.InteropServices;
 
 namespace Glfw3
 {
-    public delegate void ErrorFunc(ErrorCode code, [MarshalAs(UnmanagedType.LPStr)] string desc);
-    public delegate void MonitorFunc(Monitor monitor, MonitorEvent ev);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public delegate void ErrorFunc(ErrorCode code, string desc);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void MonitorFunc([MarshalAs(UnmanagedType.Struct)] Monitor monitor, MonitorEvent ev);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void WindowPosFunc([MarshalAs(UnmanagedType.Struct)] Window window, int x, int y);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void WindowSizeFunc([MarshalAs(UnmanagedType.Struct)] Window window, int width, int height);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void WindowFunc([MarshalAs(UnmanagedType.Struct)] Window window);
 
     public enum ErrorCode
     {
@@ -85,6 +97,16 @@ namespace Glfw3
         Any     = 0,
         Core    = 0x00032001,
         Compat  = 0x00032002
+    }
+
+    public enum WindowAttrib
+    {
+        Focused     = 0x00020001,
+        Iconified   = 0x00020002,
+        Resizable   = 0x00020003,
+        Visible     = 0x00020004,
+        Decorated   = 0x00020005,
+        Floating    = 0x00020007
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -208,12 +230,9 @@ namespace Glfw3
     {
         internal const string dll = "libglfw.3.1";
 
-        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
-        static extern int glfwInit();
-        public static bool Init()
-        {
-            return glfwInit() == 1;
-        }
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwInit")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Init();
 
         [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwTerminate")]
         public static extern void Terminate();
@@ -241,8 +260,7 @@ namespace Glfw3
         static extern IntPtr glfwSetErrorCallback(IntPtr callback);
         public static void SetErrorCallback(ErrorFunc callback)
         {
-            IntPtr ptr = callback != null ? Marshal.GetFunctionPointerForDelegate(callback) : IntPtr.Zero;
-            glfwSetErrorCallback(ptr);
+            glfwSetErrorCallback(Marshal.GetFunctionPointerForDelegate(callback));
         }
 
         [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
@@ -250,26 +268,22 @@ namespace Glfw3
         public static unsafe Monitor[] GetMonitors()
         {
             int count;
-            var ptr = glfwGetMonitors(&count);
-            ptr = Marshal.PtrToStructure<IntPtr>(ptr);
+            var array = glfwGetMonitors(&count);
             var monitors = new Monitor[count];
+            var size = Marshal.SizeOf<IntPtr>();
             for (int i = 0; i < count; ++i)
             {
+                var ptr = Marshal.ReadIntPtr(array, i * size);
                 monitors[i] = new Monitor(ptr);
-                ptr = IntPtr.Add(ptr, 1);
             }
             return monitors;
         }
 
-        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
-        static extern IntPtr glfwGetPrimaryMonitor();
-        public static Monitor GetPrimaryMonitor()
-        {
-            IntPtr ptr = glfwGetPrimaryMonitor();
-            return new Monitor(ptr);
-        }
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwGetPrimaryMonitor")]
+        [return: MarshalAs(UnmanagedType.Struct)]
+        public static extern Monitor GetPrimaryMonitor();
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe void glfwGetMonitorPos(IntPtr monitor, int* xpos, int* ypos);
         public static unsafe void GetMonitorPosition(Monitor monitor, out int x, out int y)
         {
@@ -278,7 +292,7 @@ namespace Glfw3
             x = xx; y = yy;
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe void glfwGetMonitorPhysicalSize(IntPtr monitor, int* w, int* h);
         public static unsafe void GetMonitorPhysicalSize(Monitor monitor, out int w, out int h)
         {
@@ -287,7 +301,7 @@ namespace Glfw3
             w = ww; h = hh;
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern IntPtr glfwGetMonitorName(IntPtr monitor);
         public static unsafe string GetMonitortName(Monitor monitor)
         {
@@ -299,55 +313,45 @@ namespace Glfw3
         static extern IntPtr glfwSetMonitorCallback(IntPtr callback);
         public static void SetMonitorCallback(MonitorFunc callback)
         {
-            if (callback != null)
-            {
-                var call = new Action<IntPtr, int>((m, e) => callback(new Monitor(m), (MonitorEvent)e));
-                var ptr = Marshal.GetFunctionPointerForDelegate(call);
-                glfwSetMonitorCallback(ptr);
-            }
-            else
-                glfwSetMonitorCallback(IntPtr.Zero);
+            glfwSetMonitorCallback(Marshal.GetFunctionPointerForDelegate(callback));
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe IntPtr glfwGetVideoModes(IntPtr monitor, int* count);
         public static unsafe VideoMode[] GetVideoModes(Monitor monitor)
         {
             int count;
-            IntPtr ptr = glfwGetVideoModes(monitor.Ptr, &count);
+            var array = glfwGetVideoModes(monitor.Ptr, &count);
             var modes = new VideoMode[count];
+            var size = Marshal.SizeOf<VideoMode>();
             for (int i = 0; i < count; ++i)
             {
+                var ptr = Marshal.ReadIntPtr(array, i * size);
                 modes[i] = Marshal.PtrToStructure<VideoMode>(ptr);
-                ptr = IntPtr.Add(ptr, 1);
             }
             return modes;
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
-        static extern unsafe IntPtr glfwGetVideoMode(IntPtr monitor);
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwGetVideoMode(IntPtr monitor);
         public static VideoMode GetVideoMode(Monitor monitor)
         {
-            IntPtr ptr = glfwGetVideoMode(monitor.Ptr);
+            var ptr = glfwGetVideoMode(monitor.Ptr);
             return Marshal.PtrToStructure<VideoMode>(ptr);
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
-        static extern void glfwSetGamma(IntPtr monitor, float gamma);
-        public static void SetGamma(Monitor monitor, float gamma)
-        {
-            glfwSetGamma(monitor.Ptr, gamma);
-        }
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwSetGamma")]
+        public static extern void SetGamma([MarshalAs(UnmanagedType.LPStruct)] Monitor monitor, float gamma);
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern IntPtr glfwGetGammaRamp(IntPtr monitor);
         public static unsafe void GetGammaRamp(Monitor monitor, out ushort[] red, out ushort[] green, out ushort[] blue)
         {
-            IntPtr ptr = glfwGetGammaRamp(monitor.Ptr);
+            var ptr = glfwGetGammaRamp(monitor.Ptr);
             var ramp = Marshal.PtrToStructure<GammaRamp>(ptr);
-            ushort* r = (ushort*)ramp.Red.ToPointer();
-            ushort* g = (ushort*)ramp.Green.ToPointer();
-            ushort* b = (ushort*)ramp.Blue.ToPointer();
+            var r = (ushort*)ramp.Red.ToPointer();
+            var g = (ushort*)ramp.Green.ToPointer();
+            var b = (ushort*)ramp.Blue.ToPointer();
             red = new ushort[256];
             green = new ushort[256];
             blue = new ushort[256];
@@ -359,7 +363,7 @@ namespace Glfw3
                 blue[i] = b[i];
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern void glfwSetGammaRamp(IntPtr monitor, IntPtr ramp);
         public static unsafe void SetGammaRamp(Monitor monitor, ushort[] red, ushort[] green, ushort[] blue)
         {
@@ -370,10 +374,10 @@ namespace Glfw3
             glfwSetGammaRamp(monitor.Ptr, new IntPtr(&ramp));
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwDefaultWindowHints")]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwDefaultWindowHints")]
         public static extern void DefaultWindowHints();
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern void glfwWindowHint(int target, int hint);
 
         public static void WindowHint(WindowBool target, bool value)
@@ -382,8 +386,15 @@ namespace Glfw3
         }
         public static void WindowHint(WindowInt target, int value)
         {
-            if (value < -1)
-                value = -1;
+            if (value < 0)
+            {
+                if (target == WindowInt.ContextVersionMajor)
+                    value = 1;
+                else if (target == WindowInt.ContextVersionMinor)
+                    value = 0;
+                else
+                    value = -1;
+            }
             glfwWindowHint((int)target, value);
         }
         public static void WindowHint(ClientApi value)
@@ -403,57 +414,180 @@ namespace Glfw3
             glfwWindowHint(0x00022008, (int)value);
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        static extern IntPtr glfwCreateWindow(int width, int height, StringBuilder title, IntPtr monitor, IntPtr share);
-        public static Window CreateWindow(int width, int height, string title, Monitor monitor, Window share)
-        {
-            var ptr = glfwCreateWindow(width, height, new StringBuilder(title), monitor.Ptr, share.Ptr);
-            return new Window(ptr);
-        }
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, EntryPoint = "glfwCreateWindow")]
+        [return: MarshalAs(UnmanagedType.Struct)]
+        public static extern Window CreateWindow(int width, int height, string title, [MarshalAs(UnmanagedType.Struct)] Monitor monitor, [MarshalAs(UnmanagedType.Struct)] Window share);
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
-        static extern void glfwDestroyWindow(IntPtr window);
-        public static void DestroyWindow(Window window)
-        {
-            glfwDestroyWindow(window.Ptr);
-        }
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwDestroyWindow")]
+        public static extern void DestroyWindow([MarshalAs(UnmanagedType.Struct)] Window window);
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern int glfwWindowShouldClose(IntPtr window);
         public static bool WindowShouldClose(Window window)
         {
             return glfwWindowShouldClose(window.Ptr) == 1;
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern void glfwSetWindowShouldClose(IntPtr window, int value);
         public static void SetWindowShouldClose(Window window, bool value)
         {
             glfwSetWindowShouldClose(window.Ptr, value ? 1 : 0);
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         static extern void glfwSetWindowTitle(IntPtr window, StringBuilder title);
         public static void SetWindowTitle(Window window, string title)
         {
             glfwSetWindowTitle(window.Ptr, new StringBuilder(title));
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern void glfwMakeContextCurrent(IntPtr window);
         public static void MakeContextCurrent(Window window)
         {
             glfwMakeContextCurrent(window.Ptr);
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe void glfwGetWindowPos(IntPtr window, int* x, int* y);
+        public static unsafe void GetWindowPos(Window window, out int x, out int y)
+        {
+            int xx, yy;
+            glfwGetWindowPos(window.Ptr, &xx, &yy);
+            x = xx; y = yy;
+        }
+            
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern void glfwSetWindowPos(IntPtr window, int x, int y);
+        public static void SetWindowPos(Window window, int x, int y)
+        {
+            glfwSetWindowPos(window.Ptr, x, y);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe void glfwGetWindowSize(IntPtr window, int* width, int* height);
+        public static unsafe void GetWindowSize(Window window, out int width, out int height)
+        {
+            int w, h;
+            glfwGetWindowSize(window.Ptr, &w, &h);
+            width = w; height = h;
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern void glfwSetWindowSize(IntPtr window, int width, int height);
+        public static void SetWindowSize(Window window, int width, int height)
+        {
+            glfwSetWindowSize(window.Ptr, width, height);
+        }
+            
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe void glfwGetFramebufferSize(IntPtr window, int* width, int* height);
+        public static unsafe void GetFramebufferSize(Window window, out int width, out int height)
+        {
+            int w, h;
+            glfwGetFramebufferSize(window.Ptr, &w, &h);
+            width = w; height = h;
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe void glfwGetWindowFrameSize(IntPtr window, int* left, int* top, int* right, int* bottom);
+        public static unsafe void GetWindowFrameSize(Window window, out int left, out int top, out int right, out int bottom)
+        {
+            int l, t, r, b;
+            glfwGetWindowFrameSize(window.Ptr, &l, &t, &r, &b);
+            left = l; top = t; right = r; bottom = b;
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern void glfwIconifyWindow(IntPtr window);
+        public static void IconifyWindow(Window window)
+        {
+            glfwIconifyWindow(window.Ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern void glfwRestoreWindow(IntPtr window);
+        public static void RestoreWindow(Window window)
+        {
+            glfwRestoreWindow(window.Ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern void glfwShowWindow(IntPtr window);
+        public static void ShowWindow(Window window)
+        {
+            glfwShowWindow(window.Ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern void glfwHideWindow(IntPtr window);
+        public static void HideWindow(Window window)
+        {
+            glfwHideWindow(window.Ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwGetWindowMonitor(IntPtr window);
+        public static Monitor GetWindowMonitor(Window window)
+        {
+            var ptr = glfwGetWindowMonitor(window.Ptr);
+            return new Monitor(ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern int glfwGetWindowAttrib(IntPtr window, int attrib);
+        public static bool GetWindowAttrib(Window window, WindowAttrib attrib)
+        {
+            return glfwGetWindowAttrib(window.Ptr, (int)attrib) == 1;
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern void glfwSwapBuffers(IntPtr window);
         public static void SwapBuffers(Window window)
         {
             glfwSwapBuffers(window.Ptr);
         }
 
-        [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwPollEvents")]
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern void glfwSetWindowUserPointer(IntPtr window, IntPtr ptr);
+        public static void SetWindowUserPointer(Window window, IntPtr ptr)
+        {
+            glfwSetWindowUserPointer(window.Ptr, ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwGetWindowUserPointer(IntPtr window);
+        public static IntPtr GetWindowUserPointer(Window window)
+        {
+            return glfwGetWindowUserPointer(window.Ptr);
+        }
+            
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwSetWindowPosCallback(IntPtr window, IntPtr callback);
+        public static void SetWindowPosCallback(Window window, WindowPosFunc callback)
+        {
+            var ptr = Marshal.GetFunctionPointerForDelegate(callback);
+            glfwSetWindowPosCallback(window.Ptr, ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwSetWindowSizeCallback(IntPtr window, IntPtr callback);
+        public static void SetWindowSizeCallback(Window window, WindowSizeFunc callback)
+        {
+            var ptr = Marshal.GetFunctionPointerForDelegate(callback);
+            glfwSetWindowSizeCallback(window.Ptr, ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwSetWindowSizeCallback(IntPtr window, IntPtr callback);
+        public static void SetWindowSizeCallback(Window window, WindowSizeFunc callback)
+        {
+            var ptr = Marshal.GetFunctionPointerForDelegate(callback);
+            glfwSetWindowSizeCallback(window.Ptr, ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwPollEvents")]
         public static extern void PollEvents();
     }
 }
