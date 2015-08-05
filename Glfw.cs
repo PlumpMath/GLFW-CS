@@ -197,9 +197,8 @@ namespace Glfw3
         }
 
         [DllImport(Glfw.dll, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.LpAr
-            static extern unsafe IntPtr glfwGetVideoModes(IntPtr monitor, int* count);
-            public static unsafe VideoMode[] GetVideoModes(Monitor monitor)
+        static extern unsafe IntPtr glfwGetVideoModes(IntPtr monitor, int* count);
+        public static unsafe VideoMode[] GetVideoModes(Monitor monitor)
         {
             int count;
             IntPtr ptr = glfwGetVideoModes(monitor.Ptr, &count);
@@ -211,6 +210,6 @@ namespace Glfw3
             }
             return modes;
         }
-            }
-            }
+    }
+}
 
