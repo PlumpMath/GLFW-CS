@@ -292,6 +292,27 @@ namespace Glfw3
         Super   = 0x0008
     }
 
+    public enum Joystick
+    {
+        Joy0    = 0,
+        Joy1    = 1,
+        Joy2    = 2,
+        Joy3    = 3,
+        Joy4    = 4,
+        Joy5    = 5,
+        Joy6    = 6,
+        Joy7    = 7,
+        Joy8    = 8,
+        Joy9    = 9,
+        Joy10   = 10,
+        Joy11   = 12,
+        Joy12   = 13,
+        Joy13   = 14,
+        Joy14   = 15,
+        Joy15   = 16,
+        Last    = Joy15
+    }
+
     public enum MouseButton
     {
         Button0         = 0,
@@ -699,13 +720,6 @@ namespace Glfw3
         }
 
         [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
-        static extern void glfwMakeContextCurrent(IntPtr window);
-        public static void MakeContextCurrent(Window window)
-        {
-            glfwMakeContextCurrent(window.Ptr);
-        }
-
-        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe void glfwGetWindowPos(IntPtr window, int* x, int* y);
         public static unsafe void GetWindowPos(Window window, out int x, out int y)
         {
@@ -796,13 +810,6 @@ namespace Glfw3
         public static bool GetWindowAttrib(Window window, WindowAttrib attrib)
         {
             return glfwGetWindowAttrib(window.Ptr, (int)attrib) != 0;
-        }
-
-        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
-        static extern void glfwSwapBuffers(IntPtr window);
-        public static void SwapBuffers(Window window)
-        {
-            glfwSwapBuffers(window.Ptr);
         }
 
         [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
@@ -1051,5 +1058,95 @@ namespace Glfw3
             var callPtr = Marshal.GetFunctionPointerForDelegate(call);
             glfwSetDropCallback(window.Ptr, callPtr);
         }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwJoystickPresent")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool JoystickPresent(Joystick joy);
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe IntPtr glfwGetJoystickAxes(int joy, int* count);
+        public static unsafe void GetJoystickAxes(Joystick joy, out int count, float[] axes)
+        {
+            if (axes == null || axes.Length == 0)
+            {
+                count = 0;
+                return;
+            }
+            int n;
+            var array = glfwGetJoystickAxes((int)joy, &n);
+            count = n;
+            Marshal.Copy(array, axes, 0, Math.Min(n, axes.Length));
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe IntPtr glfwGetJoystickButtons(int joy, int* count);
+        public static unsafe void GetJoystickButtons(Joystick joy, out int count, bool[] buttons)
+        {
+            if (buttons == null || buttons.Length == 0)
+            {
+                count = 0;
+                return;
+            }
+            int n;
+            var array = glfwGetJoystickButtons((int)joy, &n);
+            count = n;
+            if (n == 0 || array != IntPtr.Zero)
+                return;
+            var ptr = Marshal.ReadIntPtr(array, 0);
+            var size = Marshal.SizeOf(ptr);
+            n = Math.Min(n, buttons.Length);
+            for (int i = 0; i < n; ++i)
+            {
+                ptr = Marshal.ReadIntPtr(array, i * size);
+                buttons[i] = Marshal.PtrToStructure<bool>(ptr);
+            }
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe IntPtr glfwGetJoystickName(int joy);
+        public static string GetJoystickName(Joystick joy)
+        {
+            var ptr = glfwGetJoystickName((int)joy);
+            return Marshal.PtrToStringAnsi(ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, EntryPoint = "glfwSetClipboardString")]
+        public static extern void SetClipboardString([MarshalAs(UnmanagedType.Struct)] Window window, string value);
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe IntPtr glfwGetClipboardString(IntPtr window);
+        public static string GetClipboardString(Window window)
+        {
+            var ptr = glfwGetClipboardString(window.Ptr);
+            return Marshal.PtrToStringAnsi(ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwGetTime")]
+        public static extern double GetTime();
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwSetTime")]
+        public static extern void SetTime(double time);
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwMakeContextCurrent")]
+        public static extern void MakeContextCurrent([MarshalAs(UnmanagedType.Struct)] Window window);
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwGetCurrentContext")]
+        [return: MarshalAs(UnmanagedType.Struct)] 
+        public static extern Window GetCurrentContext();
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwSwapBuffers")]
+        public static extern void SwapBuffers([MarshalAs(UnmanagedType.Struct)] Window window);
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwSwapInterval")]
+        public static extern void SwapInterval(int interval);
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, EntryPoint = "glfwExtensionSupported")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ExtensionSupported(string extension);
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, EntryPoint = "glfwGetProcAddress")]
+        public static extern IntPtr GetProcAddress(string name);
+
+
     }
 }
