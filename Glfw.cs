@@ -22,6 +22,27 @@ namespace Glfw3
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void WindowBoolFunc([MarshalAs(UnmanagedType.Struct)] Window window, [MarshalAs(UnmanagedType.Bool)] bool value);
 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void KeyFunc([MarshalAs(UnmanagedType.Struct)] Window window, KeyCode key, int scan, KeyMods mods);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void CharFunc([MarshalAs(UnmanagedType.Struct)] Window window, char chr);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void CharModFunc([MarshalAs(UnmanagedType.Struct)] Window window, char chr, KeyMods mods);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void MouseButtonFunc([MarshalAs(UnmanagedType.Struct)] Window window, MouseButton button, [MarshalAs(UnmanagedType.Bool)] bool state, KeyMods mods);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void CursorPosFunc([MarshalAs(UnmanagedType.Struct)] Window window, double x, double y);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void CursorBoolFunc([MarshalAs(UnmanagedType.Struct)] Window window, [MarshalAs(UnmanagedType.Bool)] bool value);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void DropFunc([MarshalAs(UnmanagedType.Struct)] Window window, string[] files);
+
     public enum ErrorCode
     {
         NotInitialized      = 0x00010001,
@@ -119,6 +140,16 @@ namespace Glfw3
         Disabled    = 0x00034003
     }
 
+    public enum CursorType
+    {
+        Arrow       = 0x00036001,
+        Beam        = 0x00036002,
+        Crosshair   = 0x00036003,
+        Hand        = 0x00036004,
+        ResizeX     = 0x00036005,
+        ResizeY     = 0x00036006
+    }
+
     public enum KeyState
     {
         Release = 0,
@@ -129,11 +160,8 @@ namespace Glfw3
     public enum KeyCode
     {
         Unknown         = -1,
-
         Space           = 32,
-
         Apostrophe      = 39,
-
         Comma           = 44,
         Minus           = 45,
         Period          = 46,
@@ -179,12 +207,9 @@ namespace Glfw3
         LeftBracket     = 91,
         Backslash       = 92,
         RightBracket    = 93,
-
         GraveAccent     = 96,
-
         World1          = 161,
         World2          = 162,
-
         Escape          = 256,
         Enter           = 257,
         Tab             = 258,
@@ -199,13 +224,11 @@ namespace Glfw3
         PageDown        = 267,
         Home            = 268,
         End             = 269,
-
         CapsLock        = 280,
         ScrollLock      = 281,
         NumLock         = 282,
         PrintScreen     = 283,
         Pause           = 284,
-
         F1              = 290,
         F2              = 291,
         F3              = 292,
@@ -231,7 +254,6 @@ namespace Glfw3
         F23             = 312,
         F24             = 313,
         F25             = 314,
-
         Keypad0         = 320,
         Keypad1         = 321,
         Keypad2         = 322,
@@ -249,7 +271,6 @@ namespace Glfw3
         KeypadAdd       = 334,
         KeypadEnter     = 335,
         KeypadEqual     = 336,
-
         LeftShift       = 340,
         LeftControl     = 341,
         LeftAlt         = 342,
@@ -260,6 +281,32 @@ namespace Glfw3
         RightSuper      = 347,
         Menu            = 348,
         Last            = Menu
+    }
+
+    [Flags]
+    public enum KeyMods
+    {
+        Shift   = 0x0001,
+        Control = 0x0002,
+        Alt     = 0x0004,
+        Super   = 0x0008
+    }
+
+    public enum MouseButton
+    {
+        Button0         = 0,
+        Button1         = 1,
+        Button2         = 2,
+        Button3         = 3,
+        Button4         = 4,
+        Button5         = 5,
+        Button6         = 6,
+        Button7         = 7,
+        Button8         = 8,
+        Last            = Button8,
+        Left            = Button0,
+        Right           = Button1,
+        Middle          = Button2
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -377,6 +424,58 @@ namespace Glfw3
         {
             return obj.Ptr != IntPtr.Zero;
         }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Cursor
+    {
+        public static readonly Cursor None = new Cursor(IntPtr.Zero);
+
+        public IntPtr Ptr { get; private set; }
+
+        internal Cursor(IntPtr ptr)
+        {
+            Ptr = ptr;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Cursor)
+                return Equals((Cursor)obj);
+            return false;
+        }
+        public bool Equals(Cursor obj)
+        {
+            return Ptr == obj.Ptr;
+        }
+
+        public override int GetHashCode()
+        {
+            return Ptr.GetHashCode();
+        }
+
+        public static bool operator ==(Cursor a, Cursor b)
+        {
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(Cursor a, Cursor b)
+        {
+            return !a.Equals(b);
+        }
+
+        public static implicit operator bool(Cursor obj)
+        {
+            return obj.Ptr != IntPtr.Zero;
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct Image
+    {
+        internal int Width;
+        internal int Height;
+        internal IntPtr Pixels;
     }
 
     public static class Glfw
@@ -570,6 +669,10 @@ namespace Glfw3
         [DllImport(dll, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, EntryPoint = "glfwCreateWindow")]
         [return: MarshalAs(UnmanagedType.Struct)]
         public static extern Window CreateWindow(int width, int height, string title, [MarshalAs(UnmanagedType.Struct)] Monitor monitor, [MarshalAs(UnmanagedType.Struct)] Window share);
+        public static Window CreateWindow(int width, int height, string title)
+        {
+            return CreateWindow(width, height, title, Monitor.None, Window.None);
+        }
 
         [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwDestroyWindow")]
         public static extern void DestroyWindow([MarshalAs(UnmanagedType.Struct)] Window window);
@@ -816,6 +919,137 @@ namespace Glfw3
         {
             glfwSetInputMode(window.Ptr, 0x00033003, enabled ? 1 : 0);
         }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern int glfwGetKey(IntPtr window, int key);
+        public static bool GetKey(Window window, KeyCode key)
+        {
+            return glfwGetKey(window.Ptr, (int)key) != 0;
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern int glfwGetMouseButton(IntPtr window, int button);
+        public static bool GetMouseButton(Window window, MouseButton button)
+        {
+            return glfwGetMouseButton(window.Ptr, (int)button) != 0;
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe void glfwGetCursorPos(IntPtr window, double* x, double* y);
+        public static unsafe void GetCursorPos(Window window, out double x, out double y)
+        {
+            double xx, yy;
+            glfwGetCursorPos(window.Ptr, &xx, &yy);
+            x = xx; y = yy;
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwSetCursorPos")]
+        public static extern void SetCursorPos([MarshalAs(UnmanagedType.Struct)] Window window, double x, double y);
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwCreateCursor(IntPtr image, int xhot, int yhot);
+        public static unsafe Cursor CreateCursor(int width, int height, byte[] pixels, int xhot, int yhot)
+        {
+            Image image;
+            image.Width = width;
+            image.Height = height;
+
+            int size = width * height * 4;
+            image.Pixels = Marshal.AllocHGlobal(size);
+
+            Marshal.Copy(pixels, 0, image.Pixels, Math.Min(size, pixels.Length));
+
+            var ptr = new IntPtr(&image);
+            ptr = glfwCreateCursor(ptr, xhot, yhot);
+
+            Marshal.FreeHGlobal(image.Pixels);
+
+            return new Cursor(ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwCreateStandardCursor")]
+        [return: MarshalAs(UnmanagedType.Struct)]
+        public static extern Cursor CreateStandardCursor(CursorType cursor);
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwDestroyCursor")]
+        public static extern void DestroyCursor([MarshalAs(UnmanagedType.Struct)] Cursor cursor);
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwSetCursor")]
+        public static extern void SetCursor([MarshalAs(UnmanagedType.Struct)] Window window, [MarshalAs(UnmanagedType.Struct)] Cursor cursor);
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwSetKeyCallback(IntPtr window, IntPtr callback);
+        public static void SetKeyCallback(Window window, KeyFunc callback)
+        {
+            var ptr = Marshal.GetFunctionPointerForDelegate(callback);
+            glfwSetKeyCallback(window.Ptr, ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwSetCharCallback(IntPtr window, IntPtr callback);
+        public static void SetCharCallback(Window window, CharFunc callback)
+        {
+            var ptr = Marshal.GetFunctionPointerForDelegate(callback);
+            glfwSetCharCallback(window.Ptr, ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwSetCharModsCallback(IntPtr window, IntPtr callback);
+        public static void SetCharModsCallback(Window window, CharModFunc callback)
+        {
+            var ptr = Marshal.GetFunctionPointerForDelegate(callback);
+            glfwSetCharModsCallback(window.Ptr, ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwSetMouseButtonCallback(IntPtr window, IntPtr callback);
+        public static void SetMouseButtonCallback(Window window, MouseButtonFunc callback)
+        {
+            var ptr = Marshal.GetFunctionPointerForDelegate(callback);
+            glfwSetMouseButtonCallback(window.Ptr, ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwSetCursorPosCallback(IntPtr window, IntPtr callback);
+        public static void SetCursorPosCallback(Window window, CursorPosFunc callback)
+        {
+            var ptr = Marshal.GetFunctionPointerForDelegate(callback);
+            glfwSetCursorPosCallback(window.Ptr, ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwSetCursorEnterCallback(IntPtr window, IntPtr callback);
+        public static void SetCursorEnterCallback(Window window, CursorBoolFunc callback)
+        {
+            var ptr = Marshal.GetFunctionPointerForDelegate(callback);
+            glfwSetCursorEnterCallback(window.Ptr, ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwSetScrollCallback(IntPtr window, IntPtr callback);
+        public static void SetScrollCallback(Window window, CursorPosFunc callback)
+        {
+            var ptr = Marshal.GetFunctionPointerForDelegate(callback);
+            glfwSetScrollCallback(window.Ptr, ptr);
+        }
+
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr glfwSetDropCallback(IntPtr window, IntPtr callback);
+        public static void SetDropCallback(Window window, DropFunc callback)
+        {
+            var call = new Action<IntPtr,int,IntPtr>((w, n, p) =>
+            {
+                var files = new string[n];
+                var size = Marshal.SizeOf<IntPtr>();
+                for (int i = 0; i < n; ++i)
+                {
+                    var ptr = Marshal.ReadIntPtr(p, size * i);
+                    files[i] = Marshal.PtrToStringAnsi(ptr);
+                }
+                callback(window, files);
+            });
+            var callPtr = Marshal.GetFunctionPointerForDelegate(call);
+            glfwSetDropCallback(window.Ptr, callPtr);
+        }
     }
 }
-
