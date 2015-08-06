@@ -6,7 +6,7 @@ namespace Glfw3
 {
     public static class Glfw
     {
-        internal const string dll = "libglfw.3.1";
+        internal const string dll = "glfw3.dll";
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public delegate void ErrorFunc(ErrorCode error, string desc);
