@@ -4,504 +4,504 @@ using System.Runtime.InteropServices;
 
 namespace Glfw3
 {
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-    public delegate void ErrorFunc(ErrorCode code, string desc);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void MonitorFunc([MarshalAs(UnmanagedType.Struct)] Monitor monitor, MonitorEvent ev);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void WindowPosFunc([MarshalAs(UnmanagedType.Struct)] Window window, int x, int y);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void WindowSizeFunc([MarshalAs(UnmanagedType.Struct)] Window window, int width, int height);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void WindowFunc([MarshalAs(UnmanagedType.Struct)] Window window);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void WindowBoolFunc([MarshalAs(UnmanagedType.Struct)] Window window, [MarshalAs(UnmanagedType.Bool)] bool value);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void KeyFunc([MarshalAs(UnmanagedType.Struct)] Window window, KeyCode key, int scan, KeyMods mods);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void CharFunc([MarshalAs(UnmanagedType.Struct)] Window window, char chr);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void CharModFunc([MarshalAs(UnmanagedType.Struct)] Window window, char chr, KeyMods mods);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void MouseButtonFunc([MarshalAs(UnmanagedType.Struct)] Window window, MouseButton button, [MarshalAs(UnmanagedType.Bool)] bool state, KeyMods mods);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void CursorPosFunc([MarshalAs(UnmanagedType.Struct)] Window window, double x, double y);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void CursorBoolFunc([MarshalAs(UnmanagedType.Struct)] Window window, [MarshalAs(UnmanagedType.Bool)] bool value);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void DropFunc([MarshalAs(UnmanagedType.Struct)] Window window, string[] files);
-
-    public enum ErrorCode
-    {
-        NotInitialized      = 0x00010001,
-        NoCurrentContext    = 0x00010002,
-        InvalidEnum         = 0x00010003,
-        InvalidValue        = 0x00010004,
-        OutOfMemory         = 0x00010005,
-        ApiUnavailable      = 0x00010006,
-        VersionUnavailable  = 0x00010007,
-        PlatformError       = 0x00010008,
-        FormatUnavailable   = 0x00010009
-    }
-
-    public enum MonitorEvent
-    {
-        Connected       = 0x00040001,
-        Disconnected    = 0x00040002
-    }
-
-    public enum WindowBool
-    {
-        Focused             = 0x00020001,
-        Resizable           = 0x00020003,
-        Visible             = 0x00020004,
-        Decorated           = 0x00020005,
-        AutoIconify         = 0x00020006,
-        Floating            = 0x00020007,
-        Stereo              = 0x0002100C,
-        SrgbCapable         = 0x0002100E,
-        DoubleBuffer        = 0x00021010,
-        OpenGLForwardCompat = 0x00022006,
-        OpenGLDebugContext  = 0x00022007
-    }
-
-    public enum WindowInt
-    {
-        RedBits             = 0x00021001,
-        GreenBits           = 0x00021002,
-        BlueBits            = 0x00021003,
-        AlphaBits           = 0x00021004,
-        DepthBits           = 0x00021005,
-        StencilBits         = 0x00021006,
-        AccumRedBits        = 0x00021007,
-        AccumGreenBits      = 0x00021008,
-        AccumBlueBits       = 0x00021009,
-        AccumAlphaBits      = 0x0002100A,
-        AuxBuffers          = 0x0002100B,
-        Samples             = 0x0002100D,
-        RefreshRate         = 0x0002100F,
-        ContextVersionMajor = 0x00022002,
-        ContextVersionMinor = 0x00022003
-    }
-
-    public enum ClientApi
-    {
-        OpenGLApi   = 0x00030001,
-        OpenGLESApi = 0x00030002
-    }
-
-    public enum ContextRobustness
-    {
-        None                = 0,
-        NoResetNotification = 0x00031001,
-        LoseContextOnReset  = 0x00031002
-    }
-
-    public enum ContextReleaseBehavior
-    {
-        Any     = 0,
-        Flush   = 0x00035001,
-        None    = 0x00035002
-    }
-
-    public enum OpenGLProfile
-    {
-        Any     = 0,
-        Core    = 0x00032001,
-        Compat  = 0x00032002
-    }
-
-    public enum WindowAttrib
-    {
-        Focused     = 0x00020001,
-        Iconified   = 0x00020002,
-        Resizable   = 0x00020003,
-        Visible     = 0x00020004,
-        Decorated   = 0x00020005,
-        Floating    = 0x00020007
-    }
-
-    public enum CursorMode
-    {
-        Normal      = 0x00034001,
-        Hidden      = 0x00034002,
-        Disabled    = 0x00034003
-    }
-
-    public enum CursorType
-    {
-        Arrow       = 0x00036001,
-        Beam        = 0x00036002,
-        Crosshair   = 0x00036003,
-        Hand        = 0x00036004,
-        ResizeX     = 0x00036005,
-        ResizeY     = 0x00036006
-    }
-
-    public enum KeyState
-    {
-        Release = 0,
-        Press   = 1,
-        Repeat  = 2
-    }
-
-    public enum KeyCode
-    {
-        Unknown         = -1,
-        Space           = 32,
-        Apostrophe      = 39,
-        Comma           = 44,
-        Minus           = 45,
-        Period          = 46,
-        Slash           = 47,
-        Alpha0          = 48,
-        Alpha1          = 49,
-        Alpha2          = 50,
-        Alpha3          = 51,
-        Alpha4          = 52,
-        Alpha5          = 53,
-        Alpha6          = 54,
-        Alpha7          = 55,
-        Alpha8          = 56,
-        Alpha9          = 57,
-        Semicolon       = 59,
-        Equal           = 61,
-        A               = 65,
-        B               = 66,
-        C               = 67,
-        D               = 68,
-        E               = 69,
-        F               = 70,
-        G               = 71,
-        H               = 72,
-        I               = 73,
-        J               = 74,
-        K               = 75,
-        L               = 76,
-        M               = 77,
-        N               = 78,
-        O               = 79,
-        P               = 80,
-        Q               = 81,
-        R               = 82,
-        S               = 83,
-        T               = 84,
-        U               = 85,
-        V               = 86,
-        W               = 87,
-        X               = 88,
-        Y               = 89,
-        Z               = 90,
-        LeftBracket     = 91,
-        Backslash       = 92,
-        RightBracket    = 93,
-        GraveAccent     = 96,
-        World1          = 161,
-        World2          = 162,
-        Escape          = 256,
-        Enter           = 257,
-        Tab             = 258,
-        Backspace       = 259,
-        Insert          = 260,
-        Delete          = 261,
-        Right           = 262,
-        Left            = 263,
-        Down            = 264,
-        Up              = 265,
-        PageUp          = 266,
-        PageDown        = 267,
-        Home            = 268,
-        End             = 269,
-        CapsLock        = 280,
-        ScrollLock      = 281,
-        NumLock         = 282,
-        PrintScreen     = 283,
-        Pause           = 284,
-        F1              = 290,
-        F2              = 291,
-        F3              = 292,
-        F4              = 293,
-        F5              = 294,
-        F6              = 295,
-        F7              = 296,
-        F8              = 297,
-        F9              = 298,
-        F10             = 299,
-        F11             = 300,
-        F12             = 301,
-        F13             = 302,
-        F14             = 303,
-        F15             = 304,
-        F16             = 305,
-        F17             = 306,
-        F18             = 307,
-        F19             = 308,
-        F20             = 309,
-        F21             = 310,
-        F22             = 311,
-        F23             = 312,
-        F24             = 313,
-        F25             = 314,
-        Keypad0         = 320,
-        Keypad1         = 321,
-        Keypad2         = 322,
-        Keypad3         = 323,
-        Keypad4         = 324,
-        Keypad5         = 325,
-        Keypad6         = 326,
-        Keypad7         = 327,
-        Keypad8         = 328,
-        Keypad9         = 329,
-        KeypadDecimal   = 330,
-        KeypadDivide    = 331,
-        KeypadMultiply  = 332,
-        KeypadSubtract  = 333,
-        KeypadAdd       = 334,
-        KeypadEnter     = 335,
-        KeypadEqual     = 336,
-        LeftShift       = 340,
-        LeftControl     = 341,
-        LeftAlt         = 342,
-        LeftSuper       = 343,
-        RightShift      = 344,
-        RightControl    = 345,
-        RightAlt        = 346,
-        RightSuper      = 347,
-        Menu            = 348,
-        Last            = Menu
-    }
-
-    [Flags]
-    public enum KeyMods
-    {
-        Shift   = 0x0001,
-        Control = 0x0002,
-        Alt     = 0x0004,
-        Super   = 0x0008
-    }
-
-    public enum Joystick
-    {
-        Joy0    = 0,
-        Joy1    = 1,
-        Joy2    = 2,
-        Joy3    = 3,
-        Joy4    = 4,
-        Joy5    = 5,
-        Joy6    = 6,
-        Joy7    = 7,
-        Joy8    = 8,
-        Joy9    = 9,
-        Joy10   = 10,
-        Joy11   = 12,
-        Joy12   = 13,
-        Joy13   = 14,
-        Joy14   = 15,
-        Joy15   = 16,
-        Last    = Joy15
-    }
-
-    public enum MouseButton
-    {
-        Button0         = 0,
-        Button1         = 1,
-        Button2         = 2,
-        Button3         = 3,
-        Button4         = 4,
-        Button5         = 5,
-        Button6         = 6,
-        Button7         = 7,
-        Button8         = 8,
-        Last            = Button8,
-        Left            = Button0,
-        Right           = Button1,
-        Middle          = Button2
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Monitor
-    {
-        public static readonly Monitor None = new Monitor(IntPtr.Zero);
-
-        public IntPtr Ptr { get; private set; }
-
-        internal Monitor(IntPtr ptr)
-        {
-            Ptr = ptr;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is Monitor)
-                return Equals((Monitor)obj);
-            return false;
-        }
-        public bool Equals(Monitor obj)
-        {
-            return Ptr == obj.Ptr;
-        }
-
-        public override int GetHashCode()
-        {
-            return Ptr.GetHashCode();
-        }
-
-        public static bool operator ==(Monitor a, Monitor b)
-        {
-            return a.Equals(b);
-        }
-
-        public static bool operator !=(Monitor a, Monitor b)
-        {
-            return !a.Equals(b);
-        }
-
-        public static implicit operator bool(Monitor obj)
-        {
-            return obj.Ptr != IntPtr.Zero;
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct VideoMode
-    {
-        public int Width;
-        public int Height;
-        public int RedBits;
-        public int GreenBits;
-        public int BlueBits;
-        public int RefreshRate;
-
-        public VideoMode(int width, int height, int redBits, int greenBits, int blueBits, int refreshRate)
-        {
-            Width = width;
-            Height = height;
-            RedBits = redBits;
-            GreenBits = greenBits;
-            BlueBits = blueBits;
-            RefreshRate = refreshRate;
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct GammaRamp
-    {
-        internal IntPtr Red;
-        internal IntPtr Green;
-        internal IntPtr Blue;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Window
-    {
-        public static readonly Window None = new Window(IntPtr.Zero);
-
-        public IntPtr Ptr { get; private set; }
-
-        internal Window(IntPtr ptr)
-        {
-            Ptr = ptr;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is Window)
-                return Equals((Window)obj);
-            return false;
-        }
-        public bool Equals(Window obj)
-        {
-            return Ptr == obj.Ptr;
-        }
-
-        public override int GetHashCode()
-        {
-            return Ptr.GetHashCode();
-        }
-
-        public static bool operator ==(Window a, Window b)
-        {
-            return a.Equals(b);
-        }
-
-        public static bool operator !=(Window a, Window b)
-        {
-            return !a.Equals(b);
-        }
-
-        public static implicit operator bool(Window obj)
-        {
-            return obj.Ptr != IntPtr.Zero;
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Cursor
-    {
-        public static readonly Cursor None = new Cursor(IntPtr.Zero);
-
-        public IntPtr Ptr { get; private set; }
-
-        internal Cursor(IntPtr ptr)
-        {
-            Ptr = ptr;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is Cursor)
-                return Equals((Cursor)obj);
-            return false;
-        }
-        public bool Equals(Cursor obj)
-        {
-            return Ptr == obj.Ptr;
-        }
-
-        public override int GetHashCode()
-        {
-            return Ptr.GetHashCode();
-        }
-
-        public static bool operator ==(Cursor a, Cursor b)
-        {
-            return a.Equals(b);
-        }
-
-        public static bool operator !=(Cursor a, Cursor b)
-        {
-            return !a.Equals(b);
-        }
-
-        public static implicit operator bool(Cursor obj)
-        {
-            return obj.Ptr != IntPtr.Zero;
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct Image
-    {
-        internal int Width;
-        internal int Height;
-        internal IntPtr Pixels;
-    }
-
     public static class Glfw
     {
         internal const string dll = "libglfw.3.1";
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public delegate void ErrorFunc(ErrorCode error, string desc);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void MonitorFunc([MarshalAs(UnmanagedType.Struct)] Monitor monitor, MonitorEvent ev);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void WindowPosFunc([MarshalAs(UnmanagedType.Struct)] Window window, int x, int y);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void WindowSizeFunc([MarshalAs(UnmanagedType.Struct)] Window window, int width, int height);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void WindowFunc([MarshalAs(UnmanagedType.Struct)] Window window);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void WindowBoolFunc([MarshalAs(UnmanagedType.Struct)] Window window, [MarshalAs(UnmanagedType.Bool)] bool value);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void KeyFunc([MarshalAs(UnmanagedType.Struct)] Window window, KeyCode key, int scan, KeyMods mods);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void CharFunc([MarshalAs(UnmanagedType.Struct)] Window window, char chr);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void CharModFunc([MarshalAs(UnmanagedType.Struct)] Window window, char chr, KeyMods mods);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void MouseButtonFunc([MarshalAs(UnmanagedType.Struct)] Window window, MouseButton button, [MarshalAs(UnmanagedType.Bool)] bool state, KeyMods mods);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void CursorPosFunc([MarshalAs(UnmanagedType.Struct)] Window window, double x, double y);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void CursorBoolFunc([MarshalAs(UnmanagedType.Struct)] Window window, [MarshalAs(UnmanagedType.Bool)] bool value);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void DropFunc([MarshalAs(UnmanagedType.Struct)] Window window, string[] files);
+
+        public enum ErrorCode
+        {
+            NotInitialized      = 0x00010001,
+            NoCurrentContext    = 0x00010002,
+            InvalidEnum         = 0x00010003,
+            InvalidValue        = 0x00010004,
+            OutOfMemory         = 0x00010005,
+            ApiUnavailable      = 0x00010006,
+            VersionUnavailable  = 0x00010007,
+            PlatformError       = 0x00010008,
+            FormatUnavailable   = 0x00010009
+        }
+
+        public enum MonitorEvent
+        {
+            Connected       = 0x00040001,
+            Disconnected    = 0x00040002
+        }
+
+        public enum Hint
+        {
+            Resizable               = 0x00020003,
+            Visible                 = 0x00020004,
+            Decorated               = 0x00020005,
+            Focused                 = 0x00020001,
+            AutoIconify             = 0x00020006,
+            Floating                = 0x00020007,
+            RedBits                 = 0x00021001,
+            GreenBits               = 0x00021002,
+            BlueBits                = 0x00021003,
+            AlphaBits               = 0x00021004,
+            DepthBits               = 0x00021005,
+            StencilBits             = 0x00021006,
+            AccumRedBits            = 0x00021007,
+            AccumGreenBits          = 0x00021008,
+            AccumBlueBits           = 0x00021009,
+            AccumAlphaBits          = 0x0002100A,
+            AuxBuffers              = 0x0002100B,
+            Samples                 = 0x0002100D,
+            RefreshRate             = 0x0002100F,
+            Stereo                  = 0x0002100C,
+            SrgbCapable             = 0x0002100E,
+            DoubleBuffer            = 0x00021010,
+            ClientApi               = 0x00022001,
+            ContextVersionMajor     = 0x00022002,
+            ContextVersionMinor     = 0x00022003,
+            ContextRobustness       = 0x00022005,
+            ContextReleaseBehavior  = 0x00022009,
+            OpenGLForwardCompat     = 0x00022006,
+            OpenGLDebugContext      = 0x00022007,
+            OpenGLProfile           = 0x00022008
+        }
+
+        public enum ClientApi
+        {
+            OpenGLApi   = 0x00030001,
+            OpenGLESApi = 0x00030002
+        }
+
+        public enum ContextRobustness
+        {
+            None                = 0,
+            NoResetNotification = 0x00031001,
+            LoseContextOnReset  = 0x00031002
+        }
+
+        public enum ContextReleaseBehavior
+        {
+            Any     = 0,
+            Flush   = 0x00035001,
+            None    = 0x00035002
+        }
+
+        public enum OpenGLProfile
+        {
+            Any     = 0,
+            Core    = 0x00032001,
+            Compat  = 0x00032002
+        }
+
+        public enum WindowAttrib
+        {
+            Focused     = 0x00020001,
+            Iconified   = 0x00020002,
+            Resizable   = 0x00020003,
+            Visible     = 0x00020004,
+            Decorated   = 0x00020005,
+            Floating    = 0x00020007
+        }
+
+        public enum CursorMode
+        {
+            Normal      = 0x00034001,
+            Hidden      = 0x00034002,
+            Disabled    = 0x00034003
+        }
+
+        public enum CursorType
+        {
+            Arrow       = 0x00036001,
+            Beam        = 0x00036002,
+            Crosshair   = 0x00036003,
+            Hand        = 0x00036004,
+            ResizeX     = 0x00036005,
+            ResizeY     = 0x00036006
+        }
+
+        public enum KeyState
+        {
+            Release = 0,
+            Press   = 1,
+            Repeat  = 2
+        }
+
+        public enum KeyCode
+        {
+            Unknown         = -1,
+            Space           = 32,
+            Apostrophe      = 39,
+            Comma           = 44,
+            Minus           = 45,
+            Period          = 46,
+            Slash           = 47,
+            Alpha0          = 48,
+            Alpha1          = 49,
+            Alpha2          = 50,
+            Alpha3          = 51,
+            Alpha4          = 52,
+            Alpha5          = 53,
+            Alpha6          = 54,
+            Alpha7          = 55,
+            Alpha8          = 56,
+            Alpha9          = 57,
+            Semicolon       = 59,
+            Equal           = 61,
+            A               = 65,
+            B               = 66,
+            C               = 67,
+            D               = 68,
+            E               = 69,
+            F               = 70,
+            G               = 71,
+            H               = 72,
+            I               = 73,
+            J               = 74,
+            K               = 75,
+            L               = 76,
+            M               = 77,
+            N               = 78,
+            O               = 79,
+            P               = 80,
+            Q               = 81,
+            R               = 82,
+            S               = 83,
+            T               = 84,
+            U               = 85,
+            V               = 86,
+            W               = 87,
+            X               = 88,
+            Y               = 89,
+            Z               = 90,
+            LeftBracket     = 91,
+            Backslash       = 92,
+            RightBracket    = 93,
+            GraveAccent     = 96,
+            World1          = 161,
+            World2          = 162,
+            Escape          = 256,
+            Enter           = 257,
+            Tab             = 258,
+            Backspace       = 259,
+            Insert          = 260,
+            Delete          = 261,
+            Right           = 262,
+            Left            = 263,
+            Down            = 264,
+            Up              = 265,
+            PageUp          = 266,
+            PageDown        = 267,
+            Home            = 268,
+            End             = 269,
+            CapsLock        = 280,
+            ScrollLock      = 281,
+            NumLock         = 282,
+            PrintScreen     = 283,
+            Pause           = 284,
+            F1              = 290,
+            F2              = 291,
+            F3              = 292,
+            F4              = 293,
+            F5              = 294,
+            F6              = 295,
+            F7              = 296,
+            F8              = 297,
+            F9              = 298,
+            F10             = 299,
+            F11             = 300,
+            F12             = 301,
+            F13             = 302,
+            F14             = 303,
+            F15             = 304,
+            F16             = 305,
+            F17             = 306,
+            F18             = 307,
+            F19             = 308,
+            F20             = 309,
+            F21             = 310,
+            F22             = 311,
+            F23             = 312,
+            F24             = 313,
+            F25             = 314,
+            Keypad0         = 320,
+            Keypad1         = 321,
+            Keypad2         = 322,
+            Keypad3         = 323,
+            Keypad4         = 324,
+            Keypad5         = 325,
+            Keypad6         = 326,
+            Keypad7         = 327,
+            Keypad8         = 328,
+            Keypad9         = 329,
+            KeypadDecimal   = 330,
+            KeypadDivide    = 331,
+            KeypadMultiply  = 332,
+            KeypadSubtract  = 333,
+            KeypadAdd       = 334,
+            KeypadEnter     = 335,
+            KeypadEqual     = 336,
+            LeftShift       = 340,
+            LeftControl     = 341,
+            LeftAlt         = 342,
+            LeftSuper       = 343,
+            RightShift      = 344,
+            RightControl    = 345,
+            RightAlt        = 346,
+            RightSuper      = 347,
+            Menu            = 348,
+            Last            = Menu
+        }
+
+        [Flags]
+        public enum KeyMods
+        {
+            Shift   = 0x0001,
+            Control = 0x0002,
+            Alt     = 0x0004,
+            Super   = 0x0008
+        }
+
+        public enum Joystick
+        {
+            Joy0    = 0,
+            Joy1    = 1,
+            Joy2    = 2,
+            Joy3    = 3,
+            Joy4    = 4,
+            Joy5    = 5,
+            Joy6    = 6,
+            Joy7    = 7,
+            Joy8    = 8,
+            Joy9    = 9,
+            Joy10   = 10,
+            Joy11   = 12,
+            Joy12   = 13,
+            Joy13   = 14,
+            Joy14   = 15,
+            Joy15   = 16,
+            Last    = Joy15
+        }
+
+        public enum MouseButton
+        {
+            Button0         = 0,
+            Button1         = 1,
+            Button2         = 2,
+            Button3         = 3,
+            Button4         = 4,
+            Button5         = 5,
+            Button6         = 6,
+            Button7         = 7,
+            Button8         = 8,
+            Last            = Button8,
+            Left            = Button0,
+            Right           = Button1,
+            Middle          = Button2
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Monitor
+        {
+            public static readonly Monitor None = new Monitor(IntPtr.Zero);
+
+            public IntPtr Ptr { get; private set; }
+
+            internal Monitor(IntPtr ptr)
+            {
+                Ptr = ptr;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is Monitor)
+                    return Equals((Monitor)obj);
+                return false;
+            }
+            public bool Equals(Monitor obj)
+            {
+                return Ptr == obj.Ptr;
+            }
+
+            public override int GetHashCode()
+            {
+                return Ptr.GetHashCode();
+            }
+
+            public static bool operator ==(Monitor a, Monitor b)
+            {
+                return a.Equals(b);
+            }
+
+            public static bool operator !=(Monitor a, Monitor b)
+            {
+                return !a.Equals(b);
+            }
+
+            public static implicit operator bool(Monitor obj)
+            {
+                return obj.Ptr != IntPtr.Zero;
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct VideoMode
+        {
+            public int Width;
+            public int Height;
+            public int RedBits;
+            public int GreenBits;
+            public int BlueBits;
+            public int RefreshRate;
+
+            public VideoMode(int width, int height, int redBits, int greenBits, int blueBits, int refreshRate)
+            {
+                Width = width;
+                Height = height;
+                RedBits = redBits;
+                GreenBits = greenBits;
+                BlueBits = blueBits;
+                RefreshRate = refreshRate;
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct GammaRamp
+        {
+            internal IntPtr Red;
+            internal IntPtr Green;
+            internal IntPtr Blue;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Window
+        {
+            public static readonly Window None = new Window(IntPtr.Zero);
+
+            public IntPtr Ptr { get; private set; }
+
+            internal Window(IntPtr ptr)
+            {
+                Ptr = ptr;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is Window)
+                    return Equals((Window)obj);
+                return false;
+            }
+            public bool Equals(Window obj)
+            {
+                return Ptr == obj.Ptr;
+            }
+
+            public override int GetHashCode()
+            {
+                return Ptr.GetHashCode();
+            }
+
+            public static bool operator ==(Window a, Window b)
+            {
+                return a.Equals(b);
+            }
+
+            public static bool operator !=(Window a, Window b)
+            {
+                return !a.Equals(b);
+            }
+
+            public static implicit operator bool(Window obj)
+            {
+                return obj.Ptr != IntPtr.Zero;
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Cursor
+        {
+            public static readonly Cursor None = new Cursor(IntPtr.Zero);
+
+            public IntPtr Ptr { get; private set; }
+
+            internal Cursor(IntPtr ptr)
+            {
+                Ptr = ptr;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is Cursor)
+                    return Equals((Cursor)obj);
+                return false;
+            }
+            public bool Equals(Cursor obj)
+            {
+                return Ptr == obj.Ptr;
+            }
+
+            public override int GetHashCode()
+            {
+                return Ptr.GetHashCode();
+            }
+
+            public static bool operator ==(Cursor a, Cursor b)
+            {
+                return a.Equals(b);
+            }
+
+            public static bool operator !=(Cursor a, Cursor b)
+            {
+                return !a.Equals(b);
+            }
+
+            public static implicit operator bool(Cursor obj)
+            {
+                return obj.Ptr != IntPtr.Zero;
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct Image
+        {
+            internal int Width;
+            internal int Height;
+            internal IntPtr Pixels;
+        }
 
         [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwInit")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -653,38 +653,19 @@ namespace Glfw3
         [DllImport(dll, CallingConvention = CallingConvention.Cdecl)]
         static extern void glfwWindowHint(int target, int hint);
 
-        public static void WindowHint(WindowBool target, bool value)
+        public static void WindowHint(Hint hint, bool value)
         {
-            glfwWindowHint((int)target, value ? 1 : 0);
+            glfwWindowHint((int)hint, value ? 1 : 0);
         }
-        public static void WindowHint(WindowInt target, int value)
+        public static void WindowHint(Hint hint, int value)
         {
             if (value < 0)
-            {
-                if (target == WindowInt.ContextVersionMajor)
-                    value = 1;
-                else if (target == WindowInt.ContextVersionMinor)
-                    value = 0;
-                else
-                    value = -1;
-            }
-            glfwWindowHint((int)target, value);
+                value = -1;
+            glfwWindowHint((int)hint, value);
         }
-        public static void WindowHint(ClientApi value)
+        public static void WindowHint(Hint hint, Enum value)
         {
-            glfwWindowHint(0x00022001, (int)value);
-        }
-        public static void WindowHint(ContextRobustness value)
-        {
-            glfwWindowHint(0x00022005, (int)value);
-        }
-        public static void WindowHint(ContextReleaseBehavior value)
-        {
-            glfwWindowHint(0x00022009, (int)value);
-        }
-        public static void WindowHint(OpenGLProfile value)
-        {
-            glfwWindowHint(0x00022008, (int)value);
+            glfwWindowHint((int)hint, Convert.ToInt32(value));
         }
 
         [DllImport(dll, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, EntryPoint = "glfwCreateWindow")]
@@ -1147,6 +1128,7 @@ namespace Glfw3
         [DllImport(dll, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, EntryPoint = "glfwGetProcAddress")]
         public static extern IntPtr GetProcAddress(string name);
 
-
+        [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwGetNSGLContext")]
+        public static extern IntPtr GetNSGLContext([MarshalAs(UnmanagedType.Struct)] Window window);
     }
 }
