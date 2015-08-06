@@ -5,7 +5,7 @@
 This is a set of C# bindings for GLFW, so if you're a C# programmer, you can use it as an alternative to SDL2, OpenTK, or SFML. Those are all great libraries, but I personally like using GLFW so I decided to write this.
 
 ## Example Code
-Here is a port of the [example code](http://www.glfw.org/documentation.html) from the GLFW documentation:
+Below is a port of the [example code](http://www.glfw.org/documentation.html) from the GLFW documentation. Because of the API design, porting existing GLFW example/tutorials and code from C should be fairly effortless.
 
 ```csharp
 using Glfw3;
