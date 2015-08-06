@@ -283,8 +283,7 @@ namespace Glfw3
             RightControl    = 345,
             RightAlt        = 346,
             RightSuper      = 347,
-            Menu            = 348,
-            Last            = Menu
+            Menu            = 348
         }
 
         [Flags]
@@ -313,8 +312,7 @@ namespace Glfw3
             Joy12   = 13,
             Joy13   = 14,
             Joy14   = 15,
-            Joy15   = 16,
-            Last    = Joy15
+            Joy15   = 16
         }
 
         public enum MouseButton
@@ -328,7 +326,6 @@ namespace Glfw3
             Button6         = 6,
             Button7         = 7,
             Button8         = 8,
-            Last            = Button8,
             Left            = Button0,
             Right           = Button1,
             Middle          = Button2
