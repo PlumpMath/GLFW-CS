@@ -334,7 +334,7 @@ public static class Glfw
     {
         public static readonly Monitor None = new Monitor(IntPtr.Zero);
 
-        public IntPtr Ptr { get; private set; }
+        public IntPtr Ptr;
 
         internal Monitor(IntPtr ptr)
         {
@@ -407,7 +407,7 @@ public static class Glfw
     {
         public static readonly Window None = new Window(IntPtr.Zero);
 
-        public IntPtr Ptr { get; private set; }
+        public IntPtr Ptr;
 
         internal Window(IntPtr ptr)
         {
@@ -451,7 +451,7 @@ public static class Glfw
     {
         public static readonly Cursor None = new Cursor(IntPtr.Zero);
 
-        public IntPtr Ptr { get; private set; }
+        public IntPtr Ptr;
 
         internal Cursor(IntPtr ptr)
         {
