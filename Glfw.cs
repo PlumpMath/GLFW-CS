@@ -538,7 +538,7 @@ public static class Glfw
         int count;
         var array = glfwGetMonitors(&count);
         var monitors = new Monitor[count];
-        var size = Marshal.SizeOf<IntPtr>();
+        var size = Marshal.SizeOf(typeof(IntPtr));
         for (int i = 0; i < count; ++i)
         {
             var ptr = Marshal.ReadIntPtr(array, i * size);
@@ -591,11 +591,11 @@ public static class Glfw
         int count;
         var array = glfwGetVideoModes(monitor.Ptr, &count);
         var modes = new VideoMode[count];
-        var size = Marshal.SizeOf<VideoMode>();
+        var size = Marshal.SizeOf(typeof(VideoMode));
         for (int i = 0; i < count; ++i)
         {
             var ptr = Marshal.ReadIntPtr(array, i * size);
-            modes[i] = Marshal.PtrToStructure<VideoMode>(ptr);
+            modes[i] = (VideoMode)Marshal.PtrToStructure(ptr, typeof(VideoMode));
         }
         return modes;
     }
@@ -605,7 +605,7 @@ public static class Glfw
     public static VideoMode GetVideoMode(Monitor monitor)
     {
         var ptr = glfwGetVideoMode(monitor.Ptr);
-        return Marshal.PtrToStructure<VideoMode>(ptr);
+        return (VideoMode)Marshal.PtrToStructure(ptr, typeof(VideoMode));
     }
 
     [DllImport(dll, CallingConvention = CallingConvention.Cdecl, EntryPoint = "glfwSetGamma")]
@@ -616,7 +616,7 @@ public static class Glfw
     public static unsafe void GetGammaRamp(Monitor monitor, out ushort[] red, out ushort[] green, out ushort[] blue)
     {
         var ptr = glfwGetGammaRamp(monitor.Ptr);
-        var ramp = Marshal.PtrToStructure<GammaRamp>(ptr);
+        var ramp = (GammaRamp)Marshal.PtrToStructure(ptr, typeof(GammaRamp));
         var r = (ushort*)ramp.Red.ToPointer();
         var g = (ushort*)ramp.Green.ToPointer();
         var b = (ushort*)ramp.Blue.ToPointer();
@@ -1023,7 +1023,7 @@ public static class Glfw
         var call = new Action<IntPtr,int,IntPtr>((w, n, p) =>
         {
             var files = new string[n];
-            var size = Marshal.SizeOf<IntPtr>();
+            var size = Marshal.SizeOf(typeof(IntPtr));
             for (int i = 0; i < n; ++i)
             {
                 var ptr = Marshal.ReadIntPtr(p, size * i);
@@ -1074,7 +1074,7 @@ public static class Glfw
         for (int i = 0; i < n; ++i)
         {
             ptr = Marshal.ReadIntPtr(array, i * size);
-            buttons[i] = Marshal.PtrToStructure<bool>(ptr);
+            buttons[i] = (bool)Marshal.PtrToStructure(ptr, typeof(bool));
         }
     }
 
